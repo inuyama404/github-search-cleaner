@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <title>GHSC mock</title>
+    <style>
+      body { font: 14px/1.5 sans-serif; padding: 24px; }
+      [role="listbox"] { border: 1px solid #ccc; padding: 12px; width: 420px; }
+      .box { border: 1px solid #ddd; padding: 8px; margin: 6px 0; }
+      ul { margin: 4px 0 12px; padding-left: 20px; }
+    </style>
+  </head>
+  <body>
+    <h1>GitHub 搜索建议模拟页</h1>
+
+    <div class="header-search" role="combobox" aria-expanded="true">
+      <input id="q" name="q" type="search" placeholder="Search or jump to…" autocomplete="off">
+      <div role="listbox">
+        <div id="recent-section" role="group" class="box">
+          <div><strong>Recent searches</strong> <button type="button">Clear</button></div>
+          <ul>
+            <li><a href="/search?q=alpha&type=repositories">alpha</a></li>
+            <li><a href="/search?q=beta&type=code">beta</a></li>
+          </ul>
+        </div>
+
+        <div id="repo-section" class="box">
+          <h3>Repositories</h3>
+          <ul>
+            <li><a href="/owner/repo-one">owner/repo-one</a></li>
+            <li><a href="/owner/repo-two">owner/repo-two</a></li>
+          </ul>
+        </div>
+
+        <div id="recent-2" class="box">
+          <div><span>最近搜索</span></div>
+          <ul>
+            <li><a href="/search?q=gamma">gamma</a></li>
+          </ul>
+        </div>
+
+        <div id="recent-3" class="box" aria-label="Recent searches">
+          <a href="/search?q=delta">delta</a>
+          <a href="/search?q=epsilon">epsilon</a>
+        </div>
+
+        <ul id="recent-4" class="box">
+          <li><h3>Recent searches</h3></li>
+          <li><a href="/search?q=zeta">zeta</a></li>
+          <li><a href="/search?q=eta">eta</a></li>
+        </ul>
+
+        <div id="after-4" class="box">
+          <h3>Users</h3>
+          <a href="/search?q=user">user</a>
+        </div>
+      </div>
+    </div>
+
+    <article id="outside">
+      <h2>Recent searches</h2>
+      <p>这段文字不在搜索框里，不应该被隐藏。</p>
+    </article>
+
+    <pre id="results">running…</pre>
+
+    <script>
+      localStorage.clear();
+      sessionStorage.clear();
+      localStorage.setItem('recent-searches', JSON.stringify(['alpha', 'beta']));
+      localStorage.setItem('search_history', 'alpha,beta');
+      localStorage.setItem('searchHistory', '["alpha"]');
+      localStorage.setItem('recentSearches', '["beta"]');
+      localStorage.setItem('github-search-scope', 'repositories');
+      localStorage.setItem('github-token', 'DO-NOT-REMOVE');
+      localStorage.setItem('search-settings', '{"compact":true}');
+      localStorage.setItem('theme', 'dark');
+      sessionStorage.setItem('search-queries', '["alpha"]');
+      sessionStorage.setItem('keep-me', 'ok');
+
+      window.chrome = {
+        storage: {
+          sync: {
+            get(defaults, callback) {
+              setTimeout(() => callback({ autoHide: true, autoClearStorage: true }), 0);
+            },
+          },
+          local: { set() {} },
+          onChanged: { addListener() {} },
+        },
+        runtime: {
+          onMessage: {
+            addListener(fn) {
+              window.__ghscOnMessage = fn;
+            },
+          },
+        },
+      };
+    </script>
+
+    <script src="../extension/content.js"></script>
+
+    <script>
+      function snapshot() {
+        const has = (id) => document.getElementById(id).classList.contains('ghsc-hidden');
+        return {
+          recentSectionHidden: has('recent-section'),
+          recent2Hidden: has('recent-2'),
+          recent3Hidden: has('recent-3'),
+          repoSectionHidden: has('repo-section'),
+          outsideHidden: has('outside'),
+          localStorageKeys: Object.keys(localStorage).sort(),
+          sessionStorageKeys: Object.keys(sessionStorage).sort(),
+          marked: document.querySelectorAll('[data-ghsc-removed]').length,
+        };
+      }
+
+      setTimeout(() => {
+        const before = snapshot();
+        const pre = document.getElementById('results');
+        pre.textContent = JSON.stringify(before, null, 2);
+
+        // 重新写入键，验证“立即清理”消息也能删除它们。
+        localStorage.setItem('recent-searches', '["again"]');
+        localStorage.setItem('search_history', 'again');
+        sessionStorage.setItem('search-queries', '["again"]');
+
+        window.__ghscOnMessage({ type: 'GHSC_CLEAR' }, null, (response) => {
+          const after = snapshot();
+          pre.textContent +=
+            '\n\nCLEAR RESPONSE:\n' +
+            JSON.stringify(response, null, 2) +
+            '\n\nAFTER CLEAR:\n' +
+            JSON.stringify(after, null, 2);
+          window.__TEST_DONE__ = { before, response, after };
+          document.title = 'TEST DONE';
+        });
+      }, 900);
+    </script>
+  </body>
+</html>

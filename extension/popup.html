@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GitHub 搜索记录清理器</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <img class="logo" src="icons/icon48.png" alt="">
+        <div class="titles">
+          <h1>GitHub 搜索记录清理器</h1>
+          <p>隐藏并清理搜索框里的“最近搜索”</p>
+        </div>
+      </header>
+
+      <section class="status" id="statusCard" aria-live="polite">
+        <span class="status-dot" id="statusDot"></span>
+        <div class="status-copy">
+          <strong id="statusTitle">正在检查当前页面…</strong>
+          <span id="statusDesc">请稍候</span>
+        </div>
+      </section>
+
+      <section class="settings" aria-label="设置">
+        <label class="row" for="autoHide">
+          <span class="row-copy">
+            <strong>自动隐藏“最近搜索”</strong>
+            <span>在搜索下拉框中移除该区域</span>
+          </span>
+          <span class="switch">
+            <input type="checkbox" id="autoHide" checked>
+            <span class="track" aria-hidden="true"></span>
+          </span>
+        </label>
+
+        <label class="row" for="autoClearStorage">
+          <span class="row-copy">
+            <strong>自动清理本地记录</strong>
+            <span>打开 GitHub 时清除 search / recent 相关存储</span>
+          </span>
+          <span class="switch">
+            <input type="checkbox" id="autoClearStorage" checked>
+            <span class="track" aria-hidden="true"></span>
+          </span>
+        </label>
+      </section>
+
+      <button class="primary" id="clearBtn" type="button" disabled>立即清理</button>
+      <p class="hint" id="hint">清理本地存储和搜索相关 Cookie，不会退出登录；若记录在 GitHub 服务器端，扩展无法删除服务器副本。</p>
+
+      <footer class="footer">
+        <span id="lastRun">尚未清理</span>
+        <span class="version">v1.0.0</span>
+      </footer>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
