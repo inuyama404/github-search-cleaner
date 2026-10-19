@@ -83,7 +83,7 @@ const files = collectFiles(root);
 files.push({
   absolute: null,
   relative: '.gitignore',
-  content: Buffer.from('build/\ntest/profile/\n*.log\n', 'utf8'),
+  content: Buffer.from('build/\ntest/profile/\ndist/*/\n*.log\n', 'utf8'),
 });
 
 console.log(JSON.stringify({ step: 'files', count: files.length, root }, null, 2));
@@ -149,7 +149,7 @@ const tree = await api(`/repos/${owner}/${repoName}/git/trees`, {
 });
 
 const commitBody = {
-  message: 'Initial commit: GitHub 搜索记录清理器 v1.0.0',
+  message: 'chore: sync GitHub 搜索记录清理器 v1.0.0',
   tree: tree.sha,
 };
 if (parentSha) commitBody.parents = [parentSha];
